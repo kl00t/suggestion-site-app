@@ -6,6 +6,23 @@
 @inject NavigationManager navManager
 @inject ProtectedSessionStorage sessionStorage
 
+<h1>Training Suggestions</h1>
+<div>
+    <button>Suggest</button>
+</div>
+
+<div>
+    <div>@suggestions?.Count Suggestions</div>
+    <div>
+        <button @onclick="(() => OrderByNew(true))">New</button>
+        <button @onclick="(() => OrderByNew(false))">Popular</button>
+    </div>
+    <div>
+        <input type="text" placeholder="Search" aria-label="Search box" 
+            @oninput="((txt) => OnSearchInput((string)txt.Value))" />
+    </div>
+</div>
+
 @code {
     private List<SuggestionModel> suggestions;
     private List<CategoryModel> categories;
