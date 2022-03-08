@@ -1,8 +1,9 @@
 ﻿@page "/Details/{Id}"
-@inject ISuggestionData suggestionData
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authProvider;
 @inject IUserData userData
+@inject ISuggestionData suggestionData
+@inject IStatusData statusData
 
 <h1 class="page-heading text-uppercase mb-4">Suggestion Details</h1>
 
@@ -50,6 +51,55 @@
     </div>    
 }
 
+@if (suggestion is not null)
+{
+    <AuthorizeView Policy="Admin">
+        <div class="row justify-content-center detail-form">
+            <div class="col-xl-8 col-lg-10 form-layout admin-details">
+                <div>
+                    <div class="suggestion-detail-status fq-bold mb-2 suggestion-detail-suggestion">
+                        Set Status
+                    </div>
+                    @if (string.IsNullOrWhiteSpace(settingStatus))
+                    {
+                        <div class="admin-set-statuses">
+                            <button class="btn suggestion-entry-text-category btn-archive btn-status-completed" @onclick="@(() => settingStatus = "completed")">
+                                completed
+                            </button>
+                            <button class="btn suggestion-entry-text-category btn-archive btn-status-watching" @onclick="@(() => settingStatus = "watching")">
+                                watching
+                            </button>
+                            <button class="btn suggestion-entry-text-category btn-archive btn-status-upcoming" @onclick="@(() => settingStatus = "upcoming")">
+                                upcoming
+                            </button>
+                            <button class="btn suggestion-entry-text-category btn-archive btn-status-dismissed" @onclick="@(() => settingStatus = "dismissed")">
+                                dismissed
+                            </button>
+                        </div>
+                    }
+                    else if (settingStatus == "completed")
+                    {
+                        <div>
+                            <input @bind="urlText" class="form-control rounded-control" type="text" placeholder="Url" aria-label="Content Url" />
+                        </div>
+                        <div class="suggestion-entry-bottom">
+                            <button class="btn btn-archive btn-archive-confirm" @onclick="CompleteSetStatus">confirm</button>
+                            <button class="btn btn-archive btn-archive-reject" @onclick="(() => settingStatus = null)">cancel</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="suggestion-entry-bottom">
+                            <button class="btn btn-archive btn-archive-confirm" @onclick="CompleteSetStatus">confirm</button>
+                            <button class="btn btn-archive btn-archive-reject" @onclick="(() => settingStatus = null)">cancel</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </AuthorizeView>
+}
+
 @code {
 
     [Parameter]
@@ -58,10 +108,47 @@
     private SuggestionModel suggestion;
     private UserModel loggedInUser;
 
+    private List<StatusModel> statuses;
+    private string settingStatus = "";
+    private string urlText = "";
+
     protected async override Task OnInitializedAsync()
     {
         suggestion = await suggestionData.GetSuggestion(Id);
         loggedInUser = await authProvider.GetUserFromAuth(userData);
+        statuses = await statusData.GetAllStatuses();
+    }
+
+    private async Task CompleteSetStatus()
+    {
+        switch (settingStatus)
+        {
+            case "completed":
+                if (string.IsNullOrWhiteSpace(urlText))
+                {
+                    return;
+                }
+                suggestion.SuggestionStatus = statuses.Where(s => s.StatusName.ToLower() == settingStatus.ToLower()).First();
+                suggestion.OwnerNotes = $"You are right, this is an important topic for developers We created a resource about it here: <a href='{urlText}' target='_blank'>{urlText}</a>";
+                break;
+            case "watching":
+                suggestion.SuggestionStatus = statuses.Where(s => s.StatusName.ToLower() == settingStatus.ToLower()).First();
+                suggestion.OwnerNotes = $"We noticed the interest in this suggestion. If more people are interested then we may address it in the future.";
+                break;
+            case "upcoming":
+                suggestion.SuggestionStatus = statuses.Where(s => s.StatusName.ToLower() == settingStatus.ToLower()).First();
+                suggestion.OwnerNotes = $"Great suggestion. We have a resource in the pipeline to address the topic.";
+                break;
+            case "dismissed":
+                suggestion.SuggestionStatus = statuses.Where(s => s.StatusName.ToLower() == settingStatus.ToLower()).First();
+                suggestion.OwnerNotes = $"Sometimes a good idea doesn't fit within our scope and vision. This is one of them.";
+                break;
+            default:
+                return;
+        }
+
+        settingStatus = null;
+        await suggestionData.UpdateSuggestion(suggestion);
     }
 
     private void ClosePage()
