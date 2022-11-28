@@ -8,7 +8,7 @@ namespace SuggestionAppUI.Pages;
 [IgnoreAntiforgeryToken]
 public class ErrorModel : PageModel
 {
-    public string? RequestId { get; set; }
+    public string RequestId { get; set; }
 
     public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
@@ -21,6 +21,7 @@ public class ErrorModel : PageModel
 
     public void OnGet()
     {
+        _logger.LogInformation("Running OnGet with RequestId: {RequestId}", RequestId);
         RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
     }
 }

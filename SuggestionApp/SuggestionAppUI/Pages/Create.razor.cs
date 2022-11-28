@@ -20,11 +20,14 @@ public partial class Create
 
     private async Task CreateSuggestion()
     {
-        SuggestionModel s = new();
-        s.Suggestion = suggestion.Suggestion;
-        s.Description = suggestion.Description;
-        s.Author = new BasicUserModel(loggedInUser);
-        s.Category = categories.Where(c => c.Id == suggestion.CategoryId).FirstOrDefault();
+        SuggestionModel s = new()
+        {
+            Suggestion = suggestion.Suggestion,
+            Description = suggestion.Description,
+            Author = new BasicUserModel(loggedInUser),
+            Category = categories.Where(c => c.Id == suggestion.CategoryId).FirstOrDefault()
+        };
+
         if (s.Category is null)
         {
             suggestion.CategoryId = "";

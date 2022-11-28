@@ -3,7 +3,9 @@ namespace SuggestionAppUI.Pages;
 public partial class AdminApproval
 {
     private List<SuggestionModel> submissions;
+#pragma warning disable IDE0052 // Remove unread private members
     private SuggestionModel editingModel;
+#pragma warning restore IDE0052 // Remove unread private members
     private string currentEditingTitle = "";
     private string editedTitle = "";
     private string currentEditingDescription = "";
